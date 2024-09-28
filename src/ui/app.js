@@ -1,93 +1,93 @@
 const { remote } = require("electron");
 const main = remote.require("./main");
 
-const productForm = document.querySelector("#productForm");
-const productName = document.querySelector("#name");
-const productPrice = document.querySelector("#price");
-const productDescription = document.querySelector("#description");
-const productsList = document.querySelector("#products");
+const userForm = document.querySelector("#userForm");
+const userName = document.querySelector("#name");
+const userEmail = document.querySelector("#email");
+const userAddress = document.querySelector("#address");
+const usersList = document.querySelector("#users");
 
-let products = [];
+let users = [];
 let editingStatus = false;
-let editProductId;
+let editUserId;
 
-const deleteProduct = async (id) => {
-  const response = confirm("Are you sure you want to delete it?");
+const deleteUser = async (id) => {
+  const response = confirm("Are you sure you want to delete this user?");
   if (response) {
-    await main.deleteProduct(id);
-    await getProducts();
+    await main.deleteUser(id);
+    await getUsers();
   }
   return;
 };
 
-const editProduct = async (id) => {
-  const product = await main.getProductById(id);
-  productName.value = product.name;
-  productPrice.value = product.price;
-  productDescription.value = product.description;
+const editUser = async (id) => {
+  const user = await main.getUserById(id);
+  userName.value = user.name;
+  userEmail.value = user.email;
+  userAddress.value = user.address;
 
   editingStatus = true;
-  editProductId = id;
+  editUserId = id;
 };
 
-productForm.addEventListener("submit", async (e) => {
+userForm.addEventListener("submit", async (e) => {
   try {
     e.preventDefault();
 
-    const product = {
-      name: productName.value,
-      price: productPrice.value,
-      description: productDescription.value,
+    const user = {
+      name: userName.value,
+      email: userEmail.value,
+      address: userAddress.value,
     };
 
     if (!editingStatus) {
-      const savedProduct = await main.createProduct(product);
-      console.log(savedProduct);
+      const savedUser = await main.createUser(user);
+      console.log(savedUser);
     } else {
-      const productUpdated = await main.updateProduct(editProductId, product);
-      console.log(productUpdated);
+      const userUpdated = await main.updateUser(editUserId, user);
+      console.log(userUpdated);
 
       // Reset
       editingStatus = false;
-      editProductId = "";
+      editUserId = "";
     }
 
-    productForm.reset();
-    productName.focus();
-    getProducts();
+    userForm.reset();
+    userName.focus();
+    getUsers();
   } catch (error) {
     console.log(error);
   }
 });
 
-function renderProducts(tasks) {
-  productsList.innerHTML = "";
-  tasks.forEach((t) => {
-    productsList.innerHTML += `
+function renderUsers(usersData) {
+  usersList.innerHTML = "";
+  usersData.forEach((u) => {
+    usersList.innerHTML += `
       <div class="card card-body my-2 animated fadeInLeft">
-        <h4>${t.name}</h4>
-        <p>${t.description}</p>
-        <h3>${t.price}$</h3>
+        <h4>${u.name}</h4>
+        <p>Email: ${u.email}</p>
+        <p>Address: ${u.address}</p>
         <p>
-        <button class="btn btn-danger btn-sm" onclick="deleteProduct('${t.id}')">
-          DELETE
-        </button>
-        <button class="btn btn-secondary btn-sm" onclick="editProduct('${t.id}')">
-          EDIT 
-        </button>
+          <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">
+            DELETE
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="editUser('${u.id}')">
+            EDIT 
+          </button>
         </p>
       </div>
     `;
   });
 }
 
-const getProducts = async () => {
-  products = await main.getProducts();
-  renderProducts(products);
+const getUsers = async () => {
+  users = await main.getUsers();
+  renderUsers(users);
 };
 
 async function init() {
-  getProducts();
+  getUsers();
 }
 
 init();

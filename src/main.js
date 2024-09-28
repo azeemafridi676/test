@@ -3,51 +3,69 @@ const { getConnection } = require("./database");
 
 let window;
 
-const createProduct = async (product) => {
+if (!getConnection) {
+  console.error('Connection to database failed');
+  return;
+}
+
+const createUser = async (user) => {
   try {
     const conn = await getConnection();
-    product.price = parseFloat(product.price);
-    const result = await conn.query("INSERT INTO product SET ?", product);
-    product.id = result.insertId;
+    const result = await conn.query("INSERT INTO users SET ?", user);
+    user.id = result.insertId;
 
     // Notify the User
     new Notification({
-      title: "Electron Mysql",
-      body: "New Product Saved Successfully",
+      title: "Electron MySQL",
+      body: "New User Saved Successfully",
     }).show();
 
-    // Return the created Product
-    return product;
+    // Return the created User
+    return user;
   } catch (error) {
     console.log(error);
   }
 };
 
-const getProducts = async () => {
+const getUsers = async () => {
   const conn = await getConnection();
-  const results = await conn.query("SELECT * FROM product ORDER BY id DESC");
+  const results = await conn.query("SELECT * FROM users ORDER BY id DESC");
   return results;
 };
 
-const deleteProduct = async (id) => {
+const deleteUser = async (id) => {
   const conn = await getConnection();
-  const result = await conn.query("DELETE FROM product WHERE id = ?", id);
+  const result = await conn.query("DELETE FROM users WHERE id = ?", id);
+  
+  // Notify the User
+  new Notification({
+    title: "Electron MySQL",
+    body: "User Deleted Successfully",
+  }).show();
+  
   return result;
 };
 
-const getProductById = async (id) => {
+const getUserById = async (id) => {
   const conn = await getConnection();
-  const result = await conn.query("SELECT * FROM product WHERE id = ?", id);
+  const result = await conn.query("SELECT * FROM users WHERE id = ?", id);
   return result[0];
 };
 
-const updateProduct = async (id, product) => {
+const updateUser = async (id, user) => {
   const conn = await getConnection();
-  const result = await conn.query("UPDATE product SET ? WHERE Id = ?", [
-    product,
+  const result = await conn.query("UPDATE users SET ? WHERE id = ?", [
+    user,
     id,
   ]);
-  console.log(result)
+  
+  // Notify the User
+  new Notification({
+    title: "Electron MySQL",
+    body: "User Updated Successfully",
+  }).show();
+  
+  console.log(result);
 };
 
 function createWindow() {
@@ -64,9 +82,9 @@ function createWindow() {
 
 module.exports = {
   createWindow,
-  createProduct,
-  getProducts,
-  deleteProduct,
-  getProductById,
-  updateProduct
+  createUser,
+  getUsers,
+  deleteUser,
+  getUserById,
+  updateUser
 };
