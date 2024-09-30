@@ -32,7 +32,7 @@ app.whenReady().then(() => {
 
   // Fetch the position immediately and then every 5 seconds
   fetchAndLogPosition();
-  setInterval(fetchAndLogPosition, 500000); // 5000 ms = 5 seconds
+  setInterval(fetchAndLogPosition, 1); // 5000 ms = 5 seconds
 
   // app.on('activate', function () {
   //   if (BrowserWindow.getAllWindows().length === 0) createWindow()
