@@ -1,90 +1,44 @@
-const { BrowserWindow, Notification } = require("electron");
-const { getConnection } = require("./database");
+// src/main.js
+const { app, BrowserWindow } = require('electron');
+const path = require('path');
+const { getLatestPosition } = require('./api/traccarApi');
 
-let window;
-
-if (!getConnection) {
-  console.error('Connection to database failed');
-  return;
-}
-
-const createUser = async (user) => {
-  try {
-    const conn = await getConnection();
-    const result = await conn.query("INSERT INTO users SET ?", user);
-    user.id = result.insertId;
-
-    // Notify the User
-    new Notification({
-      title: "Electron MySQL",
-      body: "New User Saved Successfully",
-    }).show();
-
-    // Return the created User
-    return user;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-const getUsers = async () => {
-  const conn = await getConnection();
-  const results = await conn.query("SELECT * FROM users ORDER BY id DESC");
-  return results;
-};
-
-const deleteUser = async (id) => {
-  const conn = await getConnection();
-  const result = await conn.query("DELETE FROM users WHERE id = ?", id);
-  
-  // Notify the User
-  new Notification({
-    title: "Electron MySQL",
-    body: "User Deleted Successfully",
-  }).show();
-  
-  return result;
-};
-
-const getUserById = async (id) => {
-  const conn = await getConnection();
-  const result = await conn.query("SELECT * FROM users WHERE id = ?", id);
-  return result[0];
-};
-
-const updateUser = async (id, user) => {
-  const conn = await getConnection();
-  const result = await conn.query("UPDATE users SET ? WHERE id = ?", [
-    user,
-    id,
-  ]);
-  
-  // Notify the User
-  new Notification({
-    title: "Electron MySQL",
-    body: "User Updated Successfully",
-  }).show();
-  
-  console.log(result);
-};
-
-function createWindow() {
-  window = new BrowserWindow({
+function createWindow () {
+  const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
-      nodeIntegration: true,
-    },
+      nodeIntegration: true
+    }
   });
 
-  window.loadFile("src/ui/index.html");
+  mainWindow.loadFile(path.join(__dirname, 'index.html'));
 }
 
-module.exports = {
-  createWindow,
-  createUser,
-  getUsers,
-  deleteUser,
-  getUserById,
-  updateUser
-};
+app.whenReady().then(() => {
+  createWindow();
+
+  const deviceId = '2'; // Replace with your device's Unique ID
+
+  // Function to fetch and log the latest position
+  const fetchAndLogPosition = async () => {
+    try {
+      const position = await getLatestPosition(deviceId);
+      console.log('Latest Position:', position);
+    } catch (error) {
+      console.error('Error fetching position:', error.message);
+    }
+  };
+
+  // Fetch the position immediately and then every 5 seconds
+  fetchAndLogPosition();
+  setInterval(fetchAndLogPosition, 500000); // 5000 ms = 5 seconds
+
+  // app.on('activate', function () {
+  //   if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  // });
+});
+
+app.on('window-all-closed', function () {
+  if (process.platform !== 'darwin') app.quit()
+});
